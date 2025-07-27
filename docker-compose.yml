@@ -1,0 +1,13 @@
+services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: user
+      POSTGRES_DB: outer_games
+  app:
+    build: .
+    ports:
+      - 13000:3000
+    depends_on:
+      - db  
