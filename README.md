@@ -11,7 +11,7 @@ Built with Node.js (Express), Vue 3, PostgreSQL, and Docker.
 - [PostgreSQL] (database)
 - [Docker] (containers and dev environment)
 - [Drizzle] (ORM for PostgreSQL)
-- [Tailwind CSS](styling)
+- [Tailwind CSS] (styling)
 
 ---
 
