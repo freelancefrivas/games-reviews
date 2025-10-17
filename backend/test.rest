@@ -1,0 +1,18 @@
+### GET request
+GET http://localhost:13000/setup
+
+### GET request
+GET http://localhost:13000
+
+### POST request
+POST http://localhost:13000
+Content-Type: application/json
+
+{
+  "first_name": "Fernando",
+  "last_name": "Rivas",
+  "password": "Outergames_2501",
+  "nickname": "Krobus",
+  "email": "puppeteer.fernando@gmail.com",
+  "admin": 1
+}

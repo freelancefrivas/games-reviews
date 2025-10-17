@@ -1,0 +1,85 @@
+@import "tailwindcss";
+@import "primeicons/primeicons.css";
+
+@theme {
+    --color-primary: #072654;
+    --color-secondary: #614e9d;
+    --color-accent: #645dc7;
+    --color-brand: #0A091B;
+    --color-text: #d19dfc;
+}
+
+body {
+    background-color: var(--color-brand);
+}
+
+@layer base {
+    *, ::before, ::after {
+        @apply box-border;
+    }
+}
+
+.montserrat {
+    font-family: "Montserrat", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+}
+
+.coiny-regular {
+    font-family: "Coiny", system-ui;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.nunito-sans {
+    font-family: "Nunito Sans", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+    font-variation-settings: "wdth" 100,
+    "YTLC" 500;
+}
+
+.exo-2 {
+    font-family: "Exo 2", sans-serif;
+    font-optical-sizing: auto;;
+    font-style: normal;
+}
+
+.header {
+    background-image: url('/images/paisaje-atmosf-rico-fant-stico--similar-a-videojue.png');
+    @apply bg-cover bg-center bg-primary/80 bg-blend-multiply;
+    @apply bg-[position:0_-150px] sm:bg-[position:0_-160px] md:bg-[position:0_-200px] lg:bg-[position:0_-240px] xl:bg-[position:0_-360px] 2xl:bg-[position:0_-420px];
+    /**opcion 1:
+      background-image: url('/images/atmospheric-landscape--with-a-sunset-turning-into-0.png');
+    @apply  bg-cover bg-center bg-primary/50 bg-blend-multiply;
+    background-position: 0 635px;
+    opcion 2:
+    background-image: url('/images/atmospheric-landscape--with-a-sunset-turning-into-0.png');
+    @apply bg-cover bg-center bg-primary/50 bg-blend-multiply;
+    background-position: 0 770px;
+    opcion 3:
+       background-image: url('/images/atmospheric-landscape--with-a-sunset-turning-into-0.png');
+    @apply bg-cover bg-center bg-primary/60 bg-blend-multiply;
+    background-position: 0 810px;
+    opcion 4:
+     background-image: url('/images/atmospheric-landscape--with-a-sunset-turning-into-0.png');
+    @apply bg-cover bg-center bg-primary/50 bg-blend-multiply;
+    background-position: 0 1000px;
+    opcion 5:
+    /*
+    background-image: url('/images/paisaje-atmosf-rico-fant-stico--similar-a-videojue.png');
+    @apply bg-cover bg-center bg-primary/80 bg-blend-multiply;
+    background-position: 0 -420px;
+     */
+
+}
+
+/*#main_nav_bar {
+    @apply font-bold uppercase;
+
+    a {
+        @apply text-xl color-tex;
+        font-family: "Montserrat", sans-serif;
+        color: var(--color-text);
+    }
+}*/
