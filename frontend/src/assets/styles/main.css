@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "primeicons/primeicons.css";
+@import "./animations.css";
 
 @theme {
     --color-primary: #072654;
@@ -11,6 +12,26 @@
 
 body {
     background-color: var(--color-brand);
+}
+
+h1 {
+    @apply text-3xl;
+    font-family: "Coiny", system-ui;
+    font-weight: 400;
+    font-style: normal;
+    color: white;
+    text-shadow: -2px 2px 4px black;
+}
+
+h2 {
+    @apply text-lg text-text font-bold;
+    font-family: "Montserrat", sans-serif;
+}
+
+p {
+    font-family: "Montserrat", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
 }
 
 @layer base {
@@ -47,7 +68,7 @@ body {
 
 .header {
     background-image: url('/images/paisaje-atmosf-rico-fant-stico--similar-a-videojue.png');
-    @apply bg-cover bg-center bg-primary/80 bg-blend-multiply;
+    @apply bg-cover bg-center bg-secondary/80 bg-blend-multiply;
     @apply bg-[position:0_-150px] sm:bg-[position:0_-160px] md:bg-[position:0_-200px] lg:bg-[position:0_-240px] xl:bg-[position:0_-360px] 2xl:bg-[position:0_-420px];
     /**opcion 1:
       background-image: url('/images/atmospheric-landscape--with-a-sunset-turning-into-0.png');
@@ -71,6 +92,57 @@ body {
     @apply bg-cover bg-center bg-primary/80 bg-blend-multiply;
     background-position: 0 -420px;
      */
+
+}
+
+.footer {
+    @apply text-text bg-cover bg-center bg-primary/90 bg-blend-multiply p-4;
+    @apply bg-[position:0_-150px] sm:bg-[position:0_-160px] md:bg-[position:0_-200px] lg:bg-[position:0_-240px] xl:bg-[position:0_-360px] 2xl:bg-[position:0_-90px];
+    background-image: url('/images/paisaje-atmosf-rico-fant-stico--similar-a-videojue (3).png');
+    /*
+    opcion 1:
+     @apply bg-[position:0_-150px] sm:bg-[position:0_-160px] md:bg-[position:0_-200px] lg:bg-[position:0_-240px] xl:bg-[position:0_-360px] 2xl:bg-[position:0_-90px];
+    background-image: url('/images/paisaje-atmosf-rico-fant-stico--similar-a-videojue (3).png');
+    opcion 2:
+     @apply bg-[position:0_-150px] sm:bg-[position:0_-160px] md:bg-[position:0_-200px] lg:bg-[position:0_-240px] xl:bg-[position:0_-360px] 2xl:bg-[position:0_-325px];
+    background-image: url('/images/paisaje-atmosf-rico-fant-stico--similar-a-videojue (3).png');
+    opcion 3:
+        @apply bg-[position:0_-150px] sm:bg-[position:0_-160px] md:bg-[position:0_-200px] lg:bg-[position:0_-240px] xl:bg-[position:0_-360px] 2xl:bg-[position:0_-380px];
+    background-image: url('/images/paisaje-atmosf-rico-fant-stico--similar-a-videojue (3).png');
+    opcion 4:
+    @apply bg-[position:0_-150px] sm:bg-[position:0_-160px] md:bg-[position:0_-200px] lg:bg-[position:0_-240px] xl:bg-[position:0_-360px] 2xl:bg-[position:0_-405px];
+    background-image: url('/images/paisaje-atmosf-rico-fant-stico--similar-a-videojue (3).png');
+     */
+}
+
+.highlight-box {
+    background-color: rgba(96, 77, 157, 0.2);
+}
+
+.tag-arrow {
+    @apply  text-white px-4 py-1 rounded-l-full relative uppercase font-bold cursor-pointer;
+    background-color: #645DC7;
+    font-family: "Exo 2", sans-serif;
+    font-optical-sizing: auto;;
+    font-style: normal;
+}
+
+.tag-arrow::after {
+    content: '';
+    position: absolute;
+    right: -12px;
+    top: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 16px 0 16px 12px;
+    border-color: transparent transparent transparent #645DC7;
+}
+
+.post-block {
+    @apply /*bg-text*/ text-brand mt-1 p-4;
+    background-color: #deb7fd;
+   /* color: var(--color-text);*/
 
 }
 

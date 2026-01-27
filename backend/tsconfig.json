@@ -47,5 +47,6 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "useDefineForClassFields": true,
+    "allowImportingTsExtensions": true
   }
 }

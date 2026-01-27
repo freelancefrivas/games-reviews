@@ -1,19 +1,23 @@
-import type { Options } from '@mikro-orm/core';
-import { PostgreSqlDriver } from '@mikro-orm/postgresql';
-import { User } from './src/entities/User.js';
-import { Post } from './src/entities/Post.js';
-import { Migrator } from '@mikro-orm/migrations';
-import { TsMorphMetadataProvider } from '@mikro-orm/reflection';
-import {Tag} from "./src/entities/Tag.js";
+import type {Options} from '@mikro-orm/core';
+import {PostgreSqlDriver} from '@mikro-orm/postgresql';
+import {User} from './src/entities/User.ts';
+import {Post} from './src/entities/Post.ts';
+import {Migrator} from '@mikro-orm/migrations';
+import {TsMorphMetadataProvider} from '@mikro-orm/reflection';
+import {Tag} from "./src/entities/Tag.ts";
+import dotenv from 'dotenv';
+import {Review} from "./src/entities/Review.ts";
+dotenv.config();
 
-const config: Options = {
+
+const config  = {
     driver: PostgreSqlDriver,
-    dbName: 'outer_games',
-    user: 'user',
-    password: 'password',
-    host: 'localhost',
-    port: 5432,
-    entities: [User, Post, Tag],
+    dbName: process.env.DB_NAME,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    host: process.env.DB_HOST,
+    port: Number(process.env.DB_PORT),
+    entities: [User, Post, Tag, Review],
     forceEntityConstructor: true,
     extensions: [Migrator],
     metadataProvider: TsMorphMetadataProvider,
