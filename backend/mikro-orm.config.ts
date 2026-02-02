@@ -7,6 +7,7 @@ import {TsMorphMetadataProvider} from '@mikro-orm/reflection';
 import {Tag} from "./src/entities/Tag.ts";
 import dotenv from 'dotenv';
 import {Review} from "./src/entities/Review.ts";
+import {PostMonthlyClicks} from "./src/entities/PostMonthlyClicks.js";
 dotenv.config();
 
 
@@ -17,7 +18,7 @@ const config  = {
     password: process.env.DB_PASSWORD,
     host: process.env.DB_HOST,
     port: Number(process.env.DB_PORT),
-    entities: [User, Post, Tag, Review],
+    entities: [User, Post, Tag, Review, PostMonthlyClicks],
     forceEntityConstructor: true,
     extensions: [Migrator],
     metadataProvider: TsMorphMetadataProvider,

@@ -7,7 +7,7 @@ const router = Router();
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
-export const TagController = (DI: any) => {
+export const UserController = (DI: any) => {
     router.get('/login', async (req, res) => {
         const {email, password, rememberMe} = req.body;
 
@@ -34,3 +34,5 @@ export const TagController = (DI: any) => {
 
     return router;
 }
+
+

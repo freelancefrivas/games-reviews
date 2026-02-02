@@ -97,7 +97,7 @@ p {
 
 .footer {
     @apply text-text bg-cover bg-center bg-primary/90 bg-blend-multiply p-4;
-    @apply bg-[position:0_-150px] sm:bg-[position:0_-160px] md:bg-[position:0_-200px] lg:bg-[position:0_-240px] xl:bg-[position:0_-360px] 2xl:bg-[position:0_-90px];
+    @apply bg-[position:0_0px] sm:bg-[position:0_0px] md:bg-[position:0_-100px] lg:bg-[position:0_-240px] xl:bg-[position:0_-360px] 2xl:bg-[position:0_-90px];
     background-image: url('/images/paisaje-atmosf-rico-fant-stico--similar-a-videojue (3).png');
     /*
     opcion 1:

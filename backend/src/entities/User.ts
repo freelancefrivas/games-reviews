@@ -1,4 +1,5 @@
-import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
+import { Entity, PrimaryKey, Property, BeforeCreate } from '@mikro-orm/core';
+import bcrypt from 'bcrypt';
 
 
 @Entity({ tableName: 'users' })
@@ -32,6 +33,22 @@ export class User {
 
     @Property()
     writer!: boolean;
+
+    @BeforeCreate()
+    async hashPassword() {
+        if (this.password) {
+            this.password = await bcrypt.hash(this.password, 10);
+        }
+    }
+
+    async verifyPassword(password: string): Promise<boolean> {
+        return bcrypt.compare(password, this.password);
+    }
+
+    toJSON() {
+        const { password, ...user } = this;
+        return user;
+    }
 
 
 }
