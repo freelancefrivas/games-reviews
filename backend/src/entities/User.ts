@@ -1,6 +1,11 @@
-import { Entity, PrimaryKey, Property, BeforeCreate } from '@mikro-orm/core';
+import {Entity, PrimaryKey, Property, BeforeCreate, Enum} from '@mikro-orm/core';
 import bcrypt from 'bcrypt';
 
+export enum RoleType {
+    ADMIN = 'Admin',
+    WRITER = 'Writer',
+    EDITOR = 'Editor'
+}
 
 @Entity({ tableName: 'users' })
 export class User {
@@ -28,11 +33,8 @@ export class User {
     @Property()
     password!: string;
 
-    @Property()
-    admin!: boolean;
-
-    @Property()
-    writer!: boolean;
+    @Enum(() => RoleType)
+    role: RoleType = RoleType.WRITER;
 
     @BeforeCreate()
     async hashPassword() {

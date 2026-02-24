@@ -2,6 +2,8 @@ import {Router} from 'express';
 import {Post, PostType} from '../entities/Post.ts';
 import {User} from '../entities/User.ts';
 import {Review} from "../entities/Review.js";
+import {PostMonthlyClicks} from "../entities/PostMonthlyClicks.ts";
+import { raw } from '@mikro-orm/core';
 
 const router = Router();
 
@@ -74,6 +76,36 @@ export const PostController = (DI: any) => {
         const reviews = await DI.em.find(Review, {}, options);
         res.json(reviews);
 
+    });
+
+    router.get('/most-viewed-month', async (req, res) => {
+        const now = new Date();
+        const yearMonth:string = `${now.getFullYear()}_${String(now.getMonth() + 1).padStart(2, '0')}`
+        const stats = await DI.em.find(PostMonthlyClicks, {year_month: yearMonth}, {
+            limit: 4,
+            orderBy: {clicks: 'DESC'},
+            populate: ['post'],
+        });
+        res.json(stats);
+    });
+
+    router.get('/most-viewed-year', async (req, res) => {
+        const now = new Date();
+        const yearMonths: string[] = [];
+        for (let i = 0; i < 12; i++) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            yearMonths.push(`${d.getFullYear()}_${String(d.getMonth() + 1).padStart(2, '0')}`);
+        }
+
+        const stats = await DI.em.createQueryBuilder(PostMonthlyClicks,'pmc')
+            .select(['post_id','p.title',  raw('SUM(clicks) as total_clicks')])
+            .join('post','p')
+            .where({ year_month: { $in: yearMonths } })
+            .groupBy(['pmc.post_id','p.title'])
+            .orderBy({ [raw('total_clicks')]: 'DESC' })
+            .limit(4)
+            .execute();
+        res.json(stats);
     });
 
     return router;

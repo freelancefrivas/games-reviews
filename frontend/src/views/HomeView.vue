@@ -71,8 +71,8 @@ const loadReviews = async () => {
       <div id="news">
         <h1 >NEWS</h1>
         <div v-for="newsItem in newsItems">
-          <RouterLink to="'/post/'+newsItem.slugCode"><h2 class="exo-2 uppercase">{{ newsItem.title }}</h2></RouterLink>
-          <RouterLink v-if="newsItem.mainImage" to="'/post/'+newsItem.slugCode"><img class="w-100"
+          <RouterLink :to="'/post/'+newsItem.slugCode"><h2 class="exo-2 uppercase">{{ newsItem.title }}</h2></RouterLink>
+          <RouterLink v-if="newsItem.mainImage" :to="'/post/'+newsItem.slugCode"><img class="w-100"
                                                                                      :src="newsItem.mainImage"/>
           </RouterLink>
           <div class="post-block">

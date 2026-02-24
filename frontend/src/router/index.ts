@@ -1,5 +1,6 @@
 import {createRouter, createWebHistory} from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import HomeView from '../views/HomeView.vue';
+import adminRoutes from './admin.ts';
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -77,8 +78,13 @@ const router = createRouter({
             name: 'Terms & Conditions',
             component: () => import('../views/legals/TermsAndConditions.vue'),
         },
-
+        ...adminRoutes,
     ],
+});
+
+router.afterEach((to) => {
+    document.title = to.meta.title ? `${to.meta.title} | Outer Games` : 'Outer Games'
 })
+
 
 export default router

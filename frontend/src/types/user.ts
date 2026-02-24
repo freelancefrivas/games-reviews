@@ -1,3 +1,8 @@
+export enum RoleType {
+    ADMIN = 'Admin',
+    WRITER = 'Writer',
+    EDITOR = 'Editor'
+}
 export interface User {
     id: number;
     createdAt: string;
@@ -6,6 +11,5 @@ export interface User {
     lastName: string;
     email: string;
     nickname: string;
-    admin: boolean;
-    writer: boolean;
+    role: RoleType;
 }

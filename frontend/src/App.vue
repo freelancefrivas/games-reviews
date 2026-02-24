@@ -1,13 +1,22 @@
 <script setup lang="ts">
-import {RouterLink, RouterView} from 'vue-router'
-import {ref} from 'vue';
+import {RouterLink, RouterView, useRoute} from 'vue-router'
+import {ref, computed} from 'vue';
 import {useSearchBarStore} from '@/stores/searchBar.ts'
 import router from "@/router";
 import {useAuthStore} from "@/stores/auth.ts";
+//tailadmin:
+import ThemeProvider from '@/components/admin/layout/ThemeProvider.vue'
+import SidebarProvider from '@/components/admin/layout/SidebarProvider.vue'
+import AdminLayoutWrapper from '@/views/admin/AdminLayoutWrapper.vue';
+
 
 const isMenuOpen = ref(false);
 const searchBarStore = useSearchBarStore();
 const auth = useAuthStore();
+const route = useRoute();
+const layout = computed(() => route.meta.layout === 'admin' ? 'admin' : 'main');
+//const sidebarCollapsed = ref(false)
+
 
 const redirectToSearchPage = () => {
   router.push({path: 'search'})
@@ -15,7 +24,18 @@ const redirectToSearchPage = () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col">
+  <!-- Admin Layout -->
+  <div v-if="layout === 'admin'">
+    <ThemeProvider>
+      <SidebarProvider>
+        <AdminLayoutWrapper>
+          <RouterView />
+        </AdminLayoutWrapper>
+      </SidebarProvider>
+    </ThemeProvider>
+  </div>
+  <!-- Main Layout -->
+  <div class="min-h-screen flex flex-col" v-else>
     <header>
       <div class="container mx-auto p-4">
         <div class="header flex items-center justify-between">
