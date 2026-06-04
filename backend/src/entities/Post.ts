@@ -37,6 +37,9 @@ export class Post {
     @Enum(() => PostType)
     type!: PostType;
 
+    @Property({ default: false })
+    published: boolean = false;
+
     @ManyToOne(() => User)
     author!: User;
 

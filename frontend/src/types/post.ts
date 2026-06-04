@@ -17,4 +17,5 @@ export interface Post {
     mainImage?: string;
     slugCode: string;
     excerpt: string;
+    published: boolean;
 }

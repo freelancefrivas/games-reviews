@@ -12,4 +12,5 @@ export interface User {
     email: string;
     nickname: string;
     role: RoleType;
+    picture: string;
 }

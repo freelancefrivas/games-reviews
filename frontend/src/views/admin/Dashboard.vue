@@ -25,7 +25,7 @@ const loadStats = async () => {
     mostViewedMonthly.push(...response.data);
     setMonthChartData(mostViewedMonthly);
     //same for year stats
-     response = await api.get('/post/most-viewed-year');
+    response = await api.get('/post/most-viewed-year');
     mostViewedYearly.push(...response.data);
     setYearChartData(mostViewedYearly);
   } catch (error) {
@@ -119,14 +119,18 @@ const setChartOptions = () => {
   <PageBreadcrumb :pageTitle="currentPageTitle"/>
   <div class="grid grid-cols-12 gap-4 md:gap-6">
     <div class=" col-span-12 md:col-span-6">
-      <ComponentCard title="Most Viewed this Month">
-        <Chart type="bar" :data="monthChartData" :options="chartOptions"/>
-      </ComponentCard>
+      <transition name="fade" mode="out-in">
+        <ComponentCard title="Most Viewed this Month" v-if="monthChartData">
+          <Chart type="bar" :data="monthChartData" :options="chartOptions"/>
+        </ComponentCard>
+      </transition>
     </div>
     <div class=" col-span-12 md:col-span-6">
-      <ComponentCard title="Most Viewed this Year">
-        <Chart type="bar" :data="yearChartData" :options="chartOptions"/>
-      </ComponentCard>
+      <transition name="fade" mode="out-in">
+        <ComponentCard title="Most Viewed this Year" v-if="yearChartData">
+          <Chart type="bar" :data="yearChartData" :options="chartOptions"/>
+        </ComponentCard>
+      </transition>
     </div>
 
   </div>

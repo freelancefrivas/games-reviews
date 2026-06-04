@@ -3,7 +3,7 @@ import {Post, PostType} from '../entities/Post.ts';
 import {User} from '../entities/User.ts';
 import {Review} from "../entities/Review.js";
 import {PostMonthlyClicks} from "../entities/PostMonthlyClicks.ts";
-import { raw } from '@mikro-orm/core';
+import {raw} from '@mikro-orm/core';
 
 const router = Router();
 
@@ -11,7 +11,14 @@ const router = Router();
 export const PostController = (DI: any) => {
 
     router.get('/', async (req, res) => {
-        const posts = await DI.em.find(Post, {});
+        const {type, keyword, author} = req.query;
+
+        const params = {
+            ...(type && {type}),
+            ...(author && {author: author}),
+            ...(keyword && {title: {$like: `%${keyword}%`}}),
+        };
+        const posts = await DI.em.find(Post, params, {populate: ['author']});
         res.json(posts);
     });
 
@@ -59,7 +66,7 @@ export const PostController = (DI: any) => {
 
           }*/
 
-        const posts = await DI.em.find(Post, {type: ['News', 'Opinion']}, options);
+        const posts = await DI.em.find(Post, {type: ['News', 'Opinion'], published: true}, options);
         res.json(posts);
 
     });
@@ -80,7 +87,7 @@ export const PostController = (DI: any) => {
 
     router.get('/most-viewed-month', async (req, res) => {
         const now = new Date();
-        const yearMonth:string = `${now.getFullYear()}_${String(now.getMonth() + 1).padStart(2, '0')}`
+        const yearMonth: string = `${now.getFullYear()}_${String(now.getMonth() + 1).padStart(2, '0')}`
         const stats = await DI.em.find(PostMonthlyClicks, {year_month: yearMonth}, {
             limit: 4,
             orderBy: {clicks: 'DESC'},
@@ -97,16 +104,17 @@ export const PostController = (DI: any) => {
             yearMonths.push(`${d.getFullYear()}_${String(d.getMonth() + 1).padStart(2, '0')}`);
         }
 
-        const stats = await DI.em.createQueryBuilder(PostMonthlyClicks,'pmc')
-            .select(['post_id','p.title',  raw('SUM(clicks) as total_clicks')])
-            .join('post','p')
-            .where({ year_month: { $in: yearMonths } })
-            .groupBy(['pmc.post_id','p.title'])
-            .orderBy({ [raw('total_clicks')]: 'DESC' })
+        const stats = await DI.em.createQueryBuilder(PostMonthlyClicks, 'pmc')
+            .select(['post_id', 'p.title', raw('SUM(clicks) as total_clicks')])
+            .join('post', 'p')
+            .where({year_month: {$in: yearMonths}})
+            .groupBy(['pmc.post_id', 'p.title'])
+            .orderBy({[raw('total_clicks')]: 'DESC'})
             .limit(4)
             .execute();
         res.json(stats);
     });
+
 
     return router;
 

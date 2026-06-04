@@ -33,6 +33,9 @@ export class User {
     @Property()
     password!: string;
 
+    @Property({ nullable: true, default: null })
+    picture?: string | null = null;
+
     @Enum(() => RoleType)
     role: RoleType = RoleType.WRITER;
 

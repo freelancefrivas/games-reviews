@@ -1,4 +1,4 @@
-import {Entity, ManyToOne, PrimaryKey, Property} from "@mikro-orm/core";
+import {Entity, ManyToOne, PrimaryKey, Property, Cascade} from "@mikro-orm/core";
 import {Post} from "./Post.ts";
 
 @Entity({tableName: 'post_monthly_clicks'})
@@ -12,6 +12,6 @@ export class PostMonthlyClicks {
     @Property()
     clicks!: number;
 
-    @ManyToOne(() => Post, { index: true })
+    @ManyToOne(() => Post, { index: true, cascade: [Cascade.REMOVE] })
     post!: Post;
 }

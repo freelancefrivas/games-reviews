@@ -17,16 +17,37 @@ const adminRoutes: Array<RouteRecordRaw> = [
                 path: 'profile',
                 name: 'Profile',
                 component: () => import('@/views/admin/Profile.vue'),
+                meta: { title: 'Profile' }
             },
             {
                 path: 'posts',
                 name: 'Posts',
                 component: () => import('@/views/admin/Posts.vue'),
+                meta: { title: 'Posts' }
             },
             {
                 path: 'users',
                 name: 'Users',
                 component: () => import('@/views/admin/Users.vue'),
+                meta: { title: 'Users' }
+            },
+            {
+                path: 'sales',
+                name: 'Sales',
+                component: () => import('@/views/admin/Sales.vue'),
+                meta: { title: 'Sales' }
+            },
+            {
+                path: 'posts/create',
+                name: 'PostCreate',
+                component: () => import('@/views/admin/Post.vue'),
+                meta: { title: 'Create Post' }
+            },
+            {
+                path: 'posts/:id/edit',
+                name: 'PostEdit',
+                component: () => import('@/views/admin/Post.vue'),
+                meta: { title: 'Edit Post' }
             },
         ],
     },

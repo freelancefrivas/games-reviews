@@ -69,9 +69,9 @@ const submitForm = async (): Promise<void> => {
 </template>
 
 <style scoped>
-::v-deep input:-webkit-autofill,
-::v-deep input:-webkit-autofill:hover,
-::v-deep input:-webkit-autofill:focus {
+:deep(input:-webkit-autofill),
+:deep(input:-webkit-autofill:hover),
+:deep(input:-webkit-autofill:focus) {
   -webkit-box-shadow: 0 0 0px 1000px rgba(0, 0, 0, 0) inset !important;
   box-shadow: 0 0 0px 1000px rgba(0, 0, 0, 0) inset !important;
   background-color: transparent !important;
