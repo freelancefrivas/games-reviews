@@ -2,7 +2,6 @@
 
 import PageBreadcrumb from "@/components/admin/common/PageBreadcrumb.vue";
 import {onMounted, reactive, ref, watch} from "vue";
-// Chart not used here
 import {Card} from "primevue";
 import {useAuthStore} from "@/stores/auth.ts";
 import api from "@/api.ts";
@@ -13,6 +12,7 @@ import {Column} from "primevue";
 import {PostType} from "@/types/post.ts";
 import {useMessageStore} from '@/stores/messages';
 import Message from "primevue/message";
+import {formatDate} from "@/utils/date.ts";
 
 const currentPageTitle = ref("POSTS");
 const authStore = useAuthStore();
@@ -21,13 +21,11 @@ const users = reactive<User[]>([]);
 const userFilter = ref(null);
 const typeFilter = ref(null);
 const keywordFilter = ref(null);
-const sortBy = ref('');
 const posts = reactive<Post[]>([]);
 
 onMounted(() => {
   loadUsers();
   reloadPosts();
-  messageStore.success('The post was deleted successfully.');
 });
 
 const loadUsers = async () => {
@@ -66,17 +64,6 @@ const deletePost = async (id: number) => {
   } catch (error) {
     console.error('Error deleting post:', error);
   }
-}
-
-const formatDate = (value: string | number | Date | null | undefined) => {
-  if (!value && value !== 0) return '';
-  const d = new Date(value as any);
-  if (isNaN(d.getTime())) return String(value);
-  return d.toLocaleString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
 }
 
 watch([userFilter, typeFilter, keywordFilter], () => {
@@ -211,26 +198,7 @@ watch([userFilter, typeFilter, keywordFilter], () => {
 <style scoped>
 @reference "tailwindcss";
 
-.action {
-  @apply inline-flex items-center rounded px-2 py-1 text-black transition-colors;
-}
 
-.action-view:hover {
-  @apply text-gray-500;
-}
-
-.action-edit:hover {
-  @apply text-blue-600;
-}
-
-.action-delete:hover {
-  @apply text-red-600;
-}
-
-.p-datatable-column-title,
-.p-datatable-tbody td {
-  font-size: 14px !important;
-}
 
 
 </style>

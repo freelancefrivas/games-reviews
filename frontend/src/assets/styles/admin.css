@@ -869,3 +869,24 @@ header {
         color: var(--color-brand-500);
     }
 }
+
+.action {
+    @apply inline-flex items-center rounded px-1 py-1 text-black transition-colors;
+}
+
+.action-view:hover {
+    @apply text-gray-500;
+}
+
+.action-edit:hover {
+    @apply text-blue-600;
+}
+
+.action-delete:hover {
+    @apply text-red-600;
+}
+
+.p-datatable-column-title,
+.p-datatable-tbody td {
+    font-size: 14px !important;
+}

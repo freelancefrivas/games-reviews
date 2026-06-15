@@ -49,6 +49,12 @@ const adminRoutes: Array<RouteRecordRaw> = [
                 component: () => import('@/views/admin/Post.vue'),
                 meta: { title: 'Edit Post' }
             },
+            {
+                path: 'sales/create',
+                name: 'SaleCreate',
+                component: () => import('@/views/admin/Sale.vue'),
+                meta: { title: 'Create Sale' }
+            },
         ],
     },
 ]
