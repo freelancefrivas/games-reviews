@@ -1,37 +1,56 @@
 <script setup lang="ts">
 import PageBreadcrumb from "@/components/admin/common/PageBreadcrumb.vue";
-import {useAuthStore} from '@/stores/auth';
+//import {useAuthStore} from '@/stores/auth';
 import {UserCircleIcon} from "@/assets/admin-icons";
-import {ref} from 'vue'
+import {ref, computed, watch} from 'vue'
 import Modal from '../../components/admin/profile/Modal.vue'
 import type {User} from "@/types/user.ts";
 import Alert from '../../components/admin/ui/Alert.vue'
 import api from "@/api.ts";
+import {authClient} from '@/lib/auth-client'
+import Message from "primevue/message";
+import {useMessageStore} from '@/stores/messages';
+import axios from "axios";
 
 const isProfileInfoModal = ref(false);
-const authStore = useAuthStore();
-const user = ref<User | null>(authStore.user);
-const firstName = ref(user.value?.firstName);
-const lastName = ref(user.value?.lastName);
-const nickname = ref(user.value?.nickname);
-const email = ref(user.value?.email);
+const isPasswordModal = ref(false);
+//const authStore = useAuthStore();
+const session = authClient.useSession();
+const user = computed(() => session.value?.data?.user ?? null);
+const baseUrl = computed(() => import.meta.env.VITE_API_URL);
+const name = ref();
+const nickname = ref();
+const email = ref();
+const currentPassword = ref<string | null>(null);
 const newPassword = ref<string | null>(null);
-const showPassword = ref<boolean>(false);
+const showNewPassword = ref<boolean>(false);
+const showCurrentPassword = ref<boolean>(false);
 const profileForm = ref<HTMLFormElement | null>(null);
+const messageStore = useMessageStore();
+const errors = ref<string[]>([]);
+
+watch(user, newUser => {
+  if (newUser) {
+    name.value = newUser.name;
+    nickname.value = newUser.nickname;
+    email.value = newUser.email;
+  }
+}, {immediate: true});
 
 
-const errors = ref([]);
-
-const submitProfile = async () => {
+/*const submitProfile = async () => {
   // Implement save profile logic here
   errors.value = [];
 
   const formData = new FormData();
-  if (firstName.value) formData.append('firstName', firstName.value);
-  if (lastName.value) formData.append('lastName', lastName.value);
-  if (nickname.value) formData.append('nickname', nickname.value);
-  if (email.value) formData.append('email', email.value);
-  if (newPassword.value) formData.append('newPassword', newPassword.value);
+  if (name.value)
+    formData.append('firstName', name.value);
+  if (nickname.value)
+    formData.append('nickname', nickname.value);
+  if (email.value)
+    formData.append('email', email.value);
+  if (newPassword.value)
+    formData.append('newPassword', newPassword.value);
 
   const fileInput = profileForm.value?.querySelector<HTMLInputElement>('input[type="file"]');
   if (fileInput?.files?.[0]) formData.append('newPicture', fileInput.files[0]);
@@ -50,7 +69,71 @@ const submitProfile = async () => {
     }
   }
 
-}
+}*/
+const submitProfile = async () => {
+  errors.value = [];
+
+  if (name.value || nickname.value) {
+    const {error} = await authClient.updateUser({
+      ...(name.value && {name: name.value}),
+      ...(nickname.value && {nickname: nickname.value}),
+    });
+    if (error)
+      errors.value.push(error.message ?? 'Error updating name/nickname');
+  }
+
+  if (email.value && email.value !== session.value.data?.user.email) {
+    const {error} = await authClient.changeEmail({newEmail: email.value});
+    if (error)
+      errors.value.push(error.message ?? 'Error updating email');
+
+  }
+
+  const fileInput = profileForm.value?.querySelector<HTMLInputElement>('input[type="file"]');
+  if (fileInput?.files?.[0]) {
+    try {
+      const fd = new FormData();
+      fd.append('file', fileInput.files[0]);
+      const {data} = await api.post('/user/upload-image', fd, {
+        headers: {'Content-Type': 'multipart/form-data'}
+      });
+
+      const {error} = await authClient.updateUser({image: data.url});
+      if (error) errors.value.push(error.message ?? 'Error updating image');
+    } catch (e) {
+      const message = axios.isAxiosError(e) ? e.response?.data?.error ?? 'Error uploading image' : 'Error uploading image';
+      errors.value.push(message);
+    }
+  }
+
+  if (errors.value.length === 0) {
+    messageStore.success('The profile data was modified.');
+    isProfileInfoModal.value = false;
+  }
+
+};
+
+const submitNewPassword = async () => {
+  errors.value = [];
+
+  if (!currentPassword.value || !newPassword.value) {
+    errors.value.push('Current and new password are required.');
+    return;
+  }
+
+  const {error} = await authClient.changePassword({
+    currentPassword: currentPassword.value,
+    newPassword: newPassword.value,
+    revokeOtherSessions: true,
+  });
+
+  if (error) {
+    errors.value.push(error.message ?? 'Error updating password');
+  } else {
+    messageStore.success('The password was modified.');
+    isPasswordModal.value = false;
+  }
+};
 
 </script>
 
@@ -59,17 +142,21 @@ const submitProfile = async () => {
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6"
          v-if="user">
       <!-- <h3 class="mb-5 text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-7">Profile</h3> -->
+      <Message :severity="msg.severity" class="my-3" v-for="(msg, index) in messageStore.messages" :key="index"
+               :closable="msg.closable" @close="messageStore.removeMessage(index)">
+        {{ msg.text }}
+      </Message>
       <div class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
         <div class="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
           <div class="flex flex-col items-center w-full gap-6 xl:flex-row">
             <div class="w-20 h-20 overflow-hidden border border-gray-200 rounded-full dark:border-gray-800">
-              <img :src="`data:image/jpeg;base64,${user.picture}`" :alt="user.firstName+' '+user.lastName"
-                   v-if="user.picture"/>
+              <img :src="baseUrl+user.image" :alt="user.name"
+                   v-if="user.image"/>
               <UserCircleIcon v-else class="h-full w-full text-gray-500  "/>
             </div>
             <div class="order-3 xl:order-2">
               <h4 class="mb-2 text-lg font-semibold text-center text-gray-800 dark:text-white/90 xl:text-left">
-                {{ user.firstName }} {{ user.lastName }}
+                {{ user.name }}
               </h4>
               <div class="flex flex-col items-center gap-1 text-center xl:flex-row xl:gap-3 xl:text-left">
                 <p class="text-sm text-gray-500 dark:text-gray-400">{{ user.role }}</p>
@@ -156,7 +243,6 @@ const submitProfile = async () => {
         </div>
       </div>
 
-
       <div class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
         <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -166,13 +252,8 @@ const submitProfile = async () => {
 
             <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
               <div>
-                <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">First Name</p>
-                <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ user.firstName }}</p>
-              </div>
-
-              <div>
-                <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Last Name</p>
-                <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ user.lastName }}</p>
+                <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Name</p>
+                <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ user.name }}</p>
               </div>
 
               <div>
@@ -226,6 +307,27 @@ const submitProfile = async () => {
         </div>
       </div>
 
+      <div class="mb-6 rounded-2xl border border-gray-200 p-5 lg:p-6 dark:border-gray-800"><h4
+          class="text-lg mb-3 font-semibold text-gray-800 lg:mb-6 dark:text-white/90">Security</h4>
+        <div>
+          <div
+              class="flex flex-col justify-between gap-4 border-b border-gray-200 py-4 first:pt-0 last:border-b-0 last:pb-0 sm:flex-row sm:items-end dark:border-gray-800">
+            <div>
+              <button @click="isPasswordModal = true"
+                      class="shadow-theme-xs flex h-10 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white py-2.5 pr-4 pl-3.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/3 dark:hover:text-gray-200">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path
+                      d="M12.3861 5.08087L14.9182 7.61296M15.6437 3.5917L16.408 4.35603C16.8962 4.84419 16.8962 5.63564 16.408 6.1238L7.83547 14.6963C7.69039 14.8414 7.51182 14.9486 7.31554 15.0083L3.97461 16.0251L4.99141 12.6842C5.05115 12.4879 5.15829 12.3093 5.30337 12.1642L13.8759 3.5917C14.3641 3.10355 15.1555 3.10355 15.6437 3.5917Z"
+                      stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+                Change Password
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
       <Modal v-if="isProfileInfoModal" @close="isProfileInfoModal = false">
         <!-- @vue-ignore -->
         <template #body>
@@ -254,69 +356,11 @@ const submitProfile = async () => {
               <Alert v-if="errors.length > 0" v-for="error in errors"
                      variant="error"
                      title="Validation Error"
-                     message=error
+                     :message="error"
                      :showLink="false"
               />
               <div class="custom-scrollbar h-[458px] overflow-y-auto p-2">
-                <div>
-                  <!--   <h5 class="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
-                       Social Links
-                     </h5>
 
-                     <div class="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-                       <div>
-                         <label
-                             class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"
-                         >
-                           Facebook
-                         </label>
-                         <input
-                             type="text"
-                             value="https://www.facebook.com/PimjoHQ"
-                             class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-                         />
-                       </div>
-
-                       <div>
-                         <label
-                             class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"
-                         >
-                           X.com
-                         </label>
-                         <input
-                             type="text"
-                             value="https://x.com/PimjoHQ"
-                             class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-                         />
-                       </div>
-
-                       <div>
-                         <label
-                             class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"
-                         >
-                           Linkedin
-                         </label>
-                         <input
-                             type="text"
-                             value="https://www.linkedin.com/company/pimjo/posts/?feedView=all"
-                             class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-                         />
-                       </div>
-
-                       <div>
-                         <label
-                             class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"
-                         >
-                           Instagram
-                         </label>
-                         <input
-                             type="text"
-                             value="https://instagram.com/PimjoHQ"
-                             class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-                         />
-                       </div>
-                     </div>-->
-                </div>
                 <div class="mt-7">
                   <!--  <h5 class="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
                       Personal Information
@@ -327,19 +371,11 @@ const submitProfile = async () => {
                       <label
                           class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"
                       >
-                        First Name
+                        Name
                       </label>
-                      <input required type="text" v-model="firstName"
+                      <input required type="text" v-model="name"
                              class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
                       />
-                    </div>
-
-                    <div class="col-span-2 lg:col-span-1">
-                      <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                        Last Name
-                      </label>
-                      <input type="text" v-model="lastName" required
-                             class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"/>
                     </div>
 
                     <div class="col-span-2 lg:col-span-1">
@@ -350,7 +386,7 @@ const submitProfile = async () => {
                              class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"/>
                     </div>
 
-                    <div class="col-span-2 lg:col-span-1">
+                    <div class="col-span-2">
                       <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                         Email Address
                       </label>
@@ -361,24 +397,115 @@ const submitProfile = async () => {
 
                     <div class="col-span-2">
                       <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                        <span v-if="!user.picture">New </span>Picture (optional)
+                        <span v-if="!user.image">New </span>Picture (optional)
                       </label>
-                      <input type="file"
+                      <input type="file" accept="image/*"
                              class="focus:border-ring-brand-300 h-11 w-full overflow-hidden rounded-lg border border-gray-300 bg-transparent text-sm text-gray-500 shadow-theme-xs transition-colors file:mr-5 file:border-collapse file:cursor-pointer file:rounded-l-lg file:border-0 file:border-r file:border-solid file:border-gray-200 file:bg-gray-50 file:py-3 file:pl-3.5 file:pr-3 file:text-sm file:text-gray-700 placeholder:text-gray-400 hover:file:bg-gray-100 focus:outline-hidden focus:file:ring-brand-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:text-white/90 dark:file:border-gray-800 dark:file:bg-white/[0.03] dark:file:text-gray-400 dark:placeholder:text-gray-400"
                       />
                     </div>
+
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-3 px-2 mt-6 lg:justify-end">
+                <button
+                    @click="isProfileInfoModal = false"
+                    type="button"
+                    class="flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] sm:w-auto"
+                >
+                  Close
+                </button>
+                <button
+                    type="submit"
+                    class="flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </template>
+      </Modal>
+
+      <Modal v-if="isPasswordModal" @close="isPasswordModal = false">
+        <!-- @vue-ignore -->
+        <template #body>
+          <div
+              class="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
+            <!-- close btn -->
+            <button @click="isPasswordModal = false"
+                    class="transition-color absolute right-5 top-5 z-999 flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:bg-gray-700 dark:bg-white/[0.05] dark:text-gray-400 dark:hover:bg-white/[0.07] dark:hover:text-gray-300"
+            >
+              <svg class="fill-current" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                   xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" clip-rule="evenodd"
+                      d="M6.04289 16.5418C5.65237 16.9323 5.65237 17.5655 6.04289 17.956C6.43342 18.3465 7.06658 18.3465 7.45711 17.956L11.9987 13.4144L16.5408 17.9565C16.9313 18.347 17.5645 18.347 17.955 17.9565C18.3455 17.566 18.3455 16.9328 17.955 16.5423L13.4129 12.0002L17.955 7.45808C18.3455 7.06756 18.3455 6.43439 17.955 6.04387C17.5645 5.65335 16.9313 5.65335 16.5408 6.04387L11.9987 10.586L7.45711 6.04439C7.06658 5.65386 6.43342 5.65386 6.04289 6.04439C5.65237 6.43491 5.65237 7.06808 6.04289 7.4586L10.5845 12.0002L6.04289 16.5418Z"
+                      fill=""/>
+              </svg>
+            </button>
+            <div class="px-2 pr-14">
+              <h4 class="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
+                Change Password
+              </h4>
+              <!-- <p class="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
+                 Update your details to keep your profile up-to-date.
+               </p> -->
+            </div>
+            <form class="flex flex-col" enctype="multipart/form-data" ref="profileForm"
+                  @submit.prevent="submitNewPassword">
+              <Alert v-if="errors.length > 0" v-for="error in errors"
+                     variant="error"
+                     title="Validation Error"
+                     :message="error"
+                     :showLink="false"
+              />
+              <div class="custom-scrollbar h-[458px] overflow-y-auto p-2">
+
+                <div class="mt-7">
+                  <!--  <h5 class="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
+                      Personal Information
+                    </h5> -->
+
+                  <div class="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                     <div class="col-span-2 lg:col-span-1">
-                      <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                        New Password (optional)
+                      <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400" f>
+                        Current Password
                       </label>
                       <div class="relative">
-                        <input :type="showPassword ? 'text' : 'password'" v-model="newPassword"
-                               placeholder="Enter your password"
+                        <input required v-model="currentPassword" :type="showCurrentPassword ? 'text' : 'password'"
+                               class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                        />
+                        <span @click="showCurrentPassword = !showCurrentPassword"
+                              class="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2">
+          <svg v-if="!showCurrentPassword" class="fill-gray-500 dark:fill-gray-400" width="20"
+               height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd"
+                  d="M10.0002 13.8619C7.23361 13.8619 4.86803 12.1372 3.92328 9.70241C4.86804 7.26761 7.23361 5.54297 10.0002 5.54297C12.7667 5.54297 15.1323 7.26762 16.0771 9.70243C15.1323 12.1372 12.7667 13.8619 10.0002 13.8619ZM10.0002 4.04297C6.48191 4.04297 3.49489 6.30917 2.4155 9.4593C2.3615 9.61687 2.3615 9.78794 2.41549 9.94552C3.49488 13.0957 6.48191 15.3619 10.0002 15.3619C13.5184 15.3619 16.5055 13.0957 17.5849 9.94555C17.6389 9.78797 17.6389 9.6169 17.5849 9.45932C16.5055 6.30919 13.5184 4.04297 10.0002 4.04297ZM9.99151 7.84413C8.96527 7.84413 8.13333 8.67606 8.13333 9.70231C8.13333 10.7286 8.96527 11.5605 9.99151 11.5605H10.0064C11.0326 11.5605 11.8646 10.7286 11.8646 9.70231C11.8646 8.67606 11.0326 7.84413 10.0064 7.84413H9.99151Z"
+            />
+          </svg>
+          <svg v-else class="fill-gray-500 dark:fill-gray-400" width="20" height="20" viewBox="0 0 20 20"
+               fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                clip-rule="evenodd"
+                d="M4.63803 3.57709C4.34513 3.2842 3.87026 3.2842 3.57737 3.57709C3.28447 3.86999 3.28447 4.34486 3.57737 4.63775L4.85323 5.91362C3.74609 6.84199 2.89363 8.06395 2.4155 9.45936C2.3615 9.61694 2.3615 9.78801 2.41549 9.94558C3.49488 13.0957 6.48191 15.3619 10.0002 15.3619C11.255 15.3619 12.4422 15.0737 13.4994 14.5598L15.3625 16.4229C15.6554 16.7158 16.1302 16.7158 16.4231 16.4229C16.716 16.13 16.716 15.6551 16.4231 15.3622L4.63803 3.57709ZM12.3608 13.4212L10.4475 11.5079C10.3061 11.5423 10.1584 11.5606 10.0064 11.5606H9.99151C8.96527 11.5606 8.13333 10.7286 8.13333 9.70237C8.13333 9.5461 8.15262 9.39434 8.18895 9.24933L5.91885 6.97923C5.03505 7.69015 4.34057 8.62704 3.92328 9.70247C4.86803 12.1373 7.23361 13.8619 10.0002 13.8619C10.8326 13.8619 11.6287 13.7058 12.3608 13.4212ZM16.0771 9.70249C15.7843 10.4569 15.3552 11.1432 14.8199 11.7311L15.8813 12.7925C16.6329 11.9813 17.2187 11.0143 17.5849 9.94561C17.6389 9.78803 17.6389 9.61696 17.5849 9.45938C16.5055 6.30925 13.5184 4.04303 10.0002 4.04303C9.13525 4.04303 8.30244 4.17999 7.52218 4.43338L8.75139 5.66259C9.1556 5.58413 9.57311 5.54303 10.0002 5.54303C12.7667 5.54303 15.1323 7.26768 16.0771 9.70249Z"
+            />
+          </svg>
+                      </span>
+                      </div>
+                    </div>
+
+                    <div class="col-span-2 lg:col-span-1">
+                      <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                        New Password
+                      </label>
+                      <div class="relative">
+                        <input required :type="showNewPassword ? 'text' : 'password'" v-model="newPassword"
                                class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
                         />
-                        <span @click="showPassword = !showPassword"
+                        <span @click="showNewPassword = !showNewPassword"
                               class="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2">
-          <svg v-if="!showPassword" class="fill-gray-500 dark:fill-gray-400" width="20"
+          <svg v-if="!showNewPassword" class="fill-gray-500 dark:fill-gray-400" width="20"
                height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path fill-rule="evenodd" clip-rule="evenodd"
                   d="M10.0002 13.8619C7.23361 13.8619 4.86803 12.1372 3.92328 9.70241C4.86804 7.26761 7.23361 5.54297 10.0002 5.54297C12.7667 5.54297 15.1323 7.26762 16.0771 9.70243C15.1323 12.1372 12.7667 13.8619 10.0002 13.8619ZM10.0002 4.04297C6.48191 4.04297 3.49489 6.30917 2.4155 9.4593C2.3615 9.61687 2.3615 9.78794 2.41549 9.94552C3.49488 13.0957 6.48191 15.3619 10.0002 15.3619C13.5184 15.3619 16.5055 13.0957 17.5849 9.94555C17.6389 9.78797 17.6389 9.6169 17.5849 9.45932C16.5055 6.30919 13.5184 4.04297 10.0002 4.04297ZM9.99151 7.84413C8.96527 7.84413 8.13333 8.67606 8.13333 9.70231C8.13333 10.7286 8.96527 11.5605 9.99151 11.5605H10.0064C11.0326 11.5605 11.8646 10.7286 11.8646 9.70231C11.8646 8.67606 11.0326 7.84413 10.0064 7.84413H9.99151Z"
@@ -400,7 +527,7 @@ const submitProfile = async () => {
               </div>
               <div class="flex items-center gap-3 px-2 mt-6 lg:justify-end">
                 <button
-                    @click="isProfileInfoModal = false"
+                    @click="isPasswordModal = false"
                     type="button"
                     class="flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] sm:w-auto"
                 >

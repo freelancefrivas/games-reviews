@@ -3,12 +3,15 @@ import {reactive, ref} from "vue";
 import {useMessageStore} from '@/stores/messages';
 import {useAuthStore} from '@/stores/auth';
 import Message from 'primevue/message';
+import {useRoute} from "vue-router";
+import {authClient} from "@/lib/auth-client.ts";
 
 
 const messageStore = useMessageStore();
 const authStore = useAuthStore();
 const input = reactive({email: '', password: ''});
 const loginForm = ref(null);
+const route = useRoute();
 
 const submitForm = async (): Promise<void> => {
   messageStore.clearMessages();
@@ -23,13 +26,33 @@ const submitForm = async (): Promise<void> => {
     console.error('Login error:', error);
   }
 };
+
+async function signInWithEmail() {
+  messageStore.clearMessages();
+  if (!input.email || !input.password) {
+    messageStore.warn('Please enter email and password');
+    return;
+  }
+
+  const redirect = route.query.redirect as string ?? '/admin/dashboard'
+  const callbackURL = `${window.location.origin}${redirect}`
+  const {data, error} = await authClient.signIn.email({
+    email: input.email,
+    password: input.password,
+    rememberMe: true,
+    callbackURL: callbackURL,
+  });
+  if (error && error.message)
+    messageStore.addMessage(error.message, 'error', undefined, false);
+console.log(error);
+}
 </script>
 
 <template>
   <div>
     <div class="bg-secondary  p-4 mx-auto w-full md:w-180 my-0 sm:my-6">
       <h2 class="">LOGIN</h2>
-      <form action="#" method="POST" class="space-y-6" id="login_form" ref="loginForm" @submit.prevent="submitForm">
+      <form action="#" method="POST" class="space-y-6" id="login_form" ref="loginForm" >
         <div class="messages">
           <Message :severity="msg.severity" class="mt-3" v-for="(msg, index) in messageStore.messages" :key="index">
             {{ msg.text }}
@@ -58,7 +81,7 @@ const submitForm = async (): Promise<void> => {
         </div>
 
         <div>
-          <button type="submit"
+          <button type="submit" @click.prevent="signInWithEmail()"
                   class="uppercase cursor-pointer flex w-full justify-center rounded-md bg-primary px-3 py-1.5 text-sm/6 font-semibold text-white hover:bg-primary/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
             Sign in
           </button>

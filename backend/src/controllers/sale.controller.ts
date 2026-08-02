@@ -20,7 +20,6 @@ export const SaleController = (DI: any) => {
     });
 
     router.delete('/:id', async (req, res) => {
-        const em = DI.em.fork();
         const sale = await DI.em.findOne(Sale, Number(req.params.id));
         if (!sale)
             return res.sendStatus(404);
@@ -28,5 +27,15 @@ export const SaleController = (DI: any) => {
         await DI.em.remove(sale).flush();
         res.sendStatus(204);
     });
+
+    router.post('/delete-expired-sales', async (req, res) => {
+
+        const result = await DI.em.createQueryBuilder(Sale)
+            .delete()
+            .where('expires_at < CURRENT_DATE')
+            .execute();
+
+        res.json({ deleted: result });
+    })
     return router;
 }

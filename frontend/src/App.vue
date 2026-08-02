@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import {RouterLink, RouterView, useRoute} from 'vue-router'
-import {ref, computed} from 'vue';
+import {ref, computed, watch} from 'vue';
 import {useSearchBarStore} from '@/stores/searchBar.ts'
 import router from "@/router";
 import {useAuthStore} from "@/stores/auth.ts";
+import {authClient} from "@/lib/auth-client.ts";
 //tailadmin:
 import ThemeProvider from '@/components/admin/layout/ThemeProvider.vue'
 import SidebarProvider from '@/components/admin/layout/SidebarProvider.vue'
@@ -16,11 +17,18 @@ const auth = useAuthStore();
 const route = useRoute();
 const layout = computed(() => route.meta.layout === 'admin' ? 'admin' : 'main');
 //const sidebarCollapsed = ref(false)
+const session = ref(authClient.useSession());
 
 
 const redirectToSearchPage = () => {
   router.push({path: 'search'})
 }
+
+watch(session, (newSession) => { //control if logging out from a restricted page
+  if (!newSession?.data?.user && route.meta.requiresAuth) {
+    router.push('/login')
+  }
+})
 </script>
 
 <template>
@@ -29,7 +37,7 @@ const redirectToSearchPage = () => {
     <ThemeProvider>
       <SidebarProvider>
         <AdminLayoutWrapper>
-          <RouterView />
+          <RouterView/>
         </AdminLayoutWrapper>
       </SidebarProvider>
     </ThemeProvider>

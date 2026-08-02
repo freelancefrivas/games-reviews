@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import PageBreadcrumb from "@/components/admin/common/PageBreadcrumb.vue";
-import {onMounted, reactive, ref, watch} from "vue";
+import {onMounted, reactive, ref, watch, computed} from "vue";
 import {Card, Column, DataTable} from "primevue";
 import {useAuthStore} from "@/stores/auth.ts";
 import api from "@/api.ts";
@@ -9,12 +9,20 @@ import type {User} from "@/types/user.ts";
 import {PostType} from "@/types/post.ts";
 import Message from "primevue/message";
 import {formatDate} from "@/utils/date.ts";
+import type {Sale} from "@/types/sale.ts";
 
 const currentPageTitle = ref("SALES");
 const authStore = useAuthStore();
 const messageStore = useMessageStore();
-const sales = reactive<User[]>([]);
-const keywordFilter = ref(null);
+const sales = reactive<Sale[]>([]);
+const keywordFilter = ref(<string|null>null);
+
+const filteredSales = computed(() => {
+  return sales.filter(sale => {
+    const keyword = keywordFilter.value?.toLowerCase() || '';
+    return sale.name.toLowerCase().includes(keyword) || sale.shop.toLowerCase().includes(keyword);
+  });
+});
 
 onMounted(() => {
   loadSales();
@@ -25,13 +33,13 @@ const loadSales = async () => {
     const response = await api.get('/sale', {});
     sales.push(...response.data);
   } catch (error) {
-    console.error('Error loading users:', error);
+    console.error('Error loading sales:', error);
   }
 }
 
 const deleteSale = async (id: number) => {
 
-  if (!confirm('Delete this post?'))
+  if (!confirm('Delete this sale?'))
     return;
   try {
     await api.delete(`/sale/${id}`);
@@ -78,7 +86,7 @@ const deleteSale = async (id: number) => {
               {{ msg.text }}
             </Message>
           </div>
-          <DataTable :value="sales" tableStyle="min-width: 50rem" class="mt-5" paginator :rows="50">
+          <DataTable :value="filteredSales" tableStyle="min-width: 50rem" class="mt-5" paginator :rows="50">
             <template #empty>
               No sales found
             </template>

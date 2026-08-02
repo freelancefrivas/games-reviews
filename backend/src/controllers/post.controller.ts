@@ -33,7 +33,6 @@ export const PostController = (DI: any) => {
     });
 
     router.delete('/:id', async (req, res) => {
-        const em = DI.em.fork();
         const post = await DI.em.findOne(Post, Number(req.params.id));
         if (!post) return res.sendStatus(404);
 

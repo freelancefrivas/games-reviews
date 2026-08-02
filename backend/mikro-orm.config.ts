@@ -10,6 +10,9 @@ import {Review} from "./src/entities/Review.ts";
 import {PostMonthlyClicks} from "./src/entities/PostMonthlyClicks.js";
 import {Sale} from "./src/entities/Sale.ts";
 import {SaleGame} from "./src/entities/SaleGame.ts";
+import {Session} from "./src/entities/Session.ts";
+import {Verification} from "./src/entities/Verification.ts";
+import {Account} from "./src/entities/Account.ts";
 dotenv.config();
 
 
@@ -20,10 +23,11 @@ const config  = {
     password: process.env.DB_PASSWORD,
     host: process.env.DB_HOST,
     port: Number(process.env.DB_PORT),
-    entities: [User, Post, Tag, Review, PostMonthlyClicks, Sale, SaleGame],
+    entities: [User, Post, Tag, Review, PostMonthlyClicks, Sale, SaleGame, Session, Verification, Account],
     forceEntityConstructor: true,
     extensions: [Migrator],
     metadataProvider: TsMorphMetadataProvider,
+    debug: (process.env.NODE_ENV !== 'production')
 };
 
 export default config;

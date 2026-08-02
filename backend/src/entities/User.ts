@@ -1,16 +1,17 @@
-import {Entity, PrimaryKey, Property, BeforeCreate, Enum} from '@mikro-orm/core';
+import {Entity, PrimaryKey, Property, BeforeCreate, Enum, OneToMany, Collection} from '@mikro-orm/core';
 import bcrypt from 'bcrypt';
 
 export enum RoleType {
-    ADMIN = 'Admin',
-    WRITER = 'Writer',
-    EDITOR = 'Editor'
+    ADMIN = 'admin',
+    WRITER = 'writer',
+    EDITOR = 'editor',
+    READER = 'reader',
 }
 
-@Entity({ tableName: 'users' })
+@Entity({ tableName: 'user' })
 export class User {
-    @PrimaryKey({ type: 'number', autoincrement: true })
-    id!: number;
+    @PrimaryKey({ type: 'text' })
+    id!: string;
 
     @Property()
     createdAt = new Date();
@@ -18,29 +19,25 @@ export class User {
     @Property({ onUpdate: () => new Date() })
     updatedAt = new Date();
 
-    @Property({ fieldName: 'first_name' })
-    firstName!: string;
-
-    @Property({ fieldName: 'last_name' })
-    lastName!: string;
+  	@Property({ type: 'text' })
+  	name!: string;
 
     @Property({  })
     email!: string;
 
     @Property({ })
     nickname!: string;
-
+    
     @Property()
-    password!: string;
+  	emailVerified!: boolean;
 
-    @Property({ nullable: true, default: null })
-    picture?: string | null = null;
+    @Property({ type: 'text', nullable: true })
+    image?: string;
 
     @Enum(() => RoleType)
     role: RoleType = RoleType.WRITER;
 
-    @BeforeCreate()
-    async hashPassword() {
+    /*async hashPassword() {
         if (this.password) {
             this.password = await bcrypt.hash(this.password, 10);
         }
@@ -48,12 +45,12 @@ export class User {
 
     async verifyPassword(password: string): Promise<boolean> {
         return bcrypt.compare(password, this.password);
-    }
+    }*/
 
-    toJSON() {
+   /* toJSON() {
         const { password, ...user } = this;
         return user;
-    }
+    }*/
 
 
 }

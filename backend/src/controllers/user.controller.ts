@@ -3,9 +3,12 @@ import bcrypt from "bcrypt";
 import jwt from 'jsonwebtoken';
 import {User} from '../entities/User.ts';
 import {z} from 'zod';
-import 'multer';
 import {Post} from "../entities/Post.ts";
 import {QueryOrder} from "@mikro-orm/core";
+import {uploadImage} from '../config/upload.js';
+import multer from "multer";
+import {requireAuth} from "../middleware.ts";
+import {Sale} from "../entities/Sale.ts";
 
 const router = Router();
 
@@ -34,7 +37,10 @@ export const UserController = (DI: any) => {
         res.json({id: user.id, email: user.email});
     });
 
-    router.put('/:id', async (req, res) => {
+    /**
+     * UPDATE USER DATA
+     */
+    router.put('/:id', requireAuth, async (req, res) => {
         const {id} = req.params;
         const {firstName, lastName, email, newPassword, nickname} = req.body;
         const fs = require('fs');
@@ -56,7 +62,7 @@ export const UserController = (DI: any) => {
         const user = await DI.em.findOne(User, {id});
 
         if (!user) {
-            return res.status(404).json({error: 'Usuario no encontrado'});
+            return res.status(404).json({error: 'User not found'});
         }
 
         user.firstName = firstName;
@@ -78,11 +84,44 @@ export const UserController = (DI: any) => {
 
     })
 
-    router.get('/', async (req, res) => {
-        // Order by lastName then firstName (both descending). Use MikroORM find options
-        const users = await DI.em.find(User, {}, { orderBy: { lastName: QueryOrder.DESC, firstName: QueryOrder.DESC } });
+    /**
+     * LIST USERS
+     */
+    router.get('/', requireAuth, async (req, res) => {
+        const users = await DI.em.find(User, {}, {orderBy: {name: QueryOrder.DESC}});
+        console.log(users);
         res.json(users);
     });
+
+    router.post('/upload-image', requireAuth, (req, res) => {
+        uploadImage.single('file')(req, res, async (err) => {
+            if (err instanceof multer.MulterError) {
+                if (err.code === 'LIMIT_FILE_SIZE') {
+                    return res.status(400).json({error: 'File too large. Max 5MB.'});
+                }
+                return res.status(400).json({error: 'Upload error: ' + err.message});
+            }
+
+            if (err) {
+                if (err.message === 'INVALID_FILE_TYPE') {
+                    return res.status(400).json({error: 'Invalid file type. Only JPEG, PNG, WEBP, GIF allowed.'});
+                }
+                return res.status(500).json({error: 'Unexpected upload error' + err.message});
+            }
+
+            if (!req.file) {
+                return res.status(400).json({error: 'No file provided'});
+            }
+
+            try {
+                const url = `/uploads/profile-images/${req.file.filename}`;
+                res.json({url});
+            } catch (e) {
+                res.status(500).json({error: 'Failed to process upload'});
+            }
+        });
+    });
+
 
     return router;
 }

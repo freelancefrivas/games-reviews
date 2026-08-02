@@ -5,7 +5,7 @@ import {onMounted, reactive, ref, watch} from "vue";
 import {Card} from "primevue";
 import {useAuthStore} from "@/stores/auth.ts";
 import api from "@/api.ts";
-import type {User} from "@/types/user.ts";
+import {RoleType, type User} from "@/types/user.ts";
 import type {Post} from "@/types/post.ts";
 import {DataTable} from "primevue";
 import {Column} from "primevue";
@@ -80,11 +80,11 @@ watch([userFilter, typeFilter, keywordFilter], () => {
         <template #content>
           <div class="flex flex-col w-full gap-x-60 gap-y-4 sm:justify-between xl:flex-row xl:items-center">
             <div class=" flex flex-wrap gap-y-5 xl:flex-1">
-              <div class="w-4/7 px-2.5 sm:w-1/3" v-if="authStore.user?.role === 'Admin'">
+              <div class="w-4/7 px-2.5 sm:w-1/3" v-if="authStore.user?.role === RoleType.ADMIN">
                 <select
                     class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30">
                   <option :value="null">Any writer</option>
-                  <option v-for="user in users" :value="user.id">{{ user.firstName }} {{ user.lastName }}</option>
+                  <option v-for="user in users" :value="user.id">{{ user.name }}</option>
                 </select>
               </div>
 
@@ -154,7 +154,7 @@ watch([userFilter, typeFilter, keywordFilter], () => {
               </template>
             </Column>
 
-            <Column field="author" header="Author" :sortable="true" v-if="authStore.user?.role === 'Admin'"
+            <Column field="author" header="Author" :sortable="true" v-if="authStore.user?.role === RoleType.ADMIN"
                     header-class="montserrat">
               <template #body="{ data }">
                 {{ data.author.firstName }} {{ data.author.lastName }}

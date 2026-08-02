@@ -1,0 +1,30 @@
+meta {
+  name: signu-up/email
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:3000/api/auth/sign-up/email
+  body: json
+  auth: inherit
+}
+
+headers {
+  Origin: http://localhost:5173
+}
+
+body:json {
+  {
+    "email": "writer@mailinator.com",
+    "password": "password",
+    "name": "Rogelio Escrituras",
+    "nickname": "rogelio",
+    "role": "Writer"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

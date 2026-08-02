@@ -1,0 +1,15 @@
+meta {
+  name: delete-expired-sales
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:3000/api/sale/delete-expired-sales
+  body: json
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

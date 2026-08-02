@@ -19,6 +19,7 @@
     "@tailwindcss/postcss": "^4.1.12",
     "@tailwindcss/vite": "^4.1.12",
     "axios": "^1.13.2",
+    "better-auth": "^1.6.23",
     "chart.js": "^4.5.1",
     "html-truncate": "^1.2.2",
     "pinia": "^3.0.3",
