@@ -17,3 +17,10 @@ export async function requireAuth(req: any, res: any, next: any) {
         res.status(500).json({ errors: ['Internal server error'] });
     }
 }
+
+export async function requireAdmin(req: any, res: any, next: any) {
+    if (req.session?.user?.role !== 'admin') {
+        return res.status(403).json({ errors: ['Admin access required'] });
+    }
+    next();
+}
