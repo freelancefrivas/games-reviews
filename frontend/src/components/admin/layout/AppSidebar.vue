@@ -193,6 +193,11 @@ let items = [
     icon: TagIcon,
     name: "Sales",
     path: "/admin/sales",
+  },
+  {
+    icon: ChatIcon,
+    name: "Comments",
+    path: "/admin/comments",
   }
 ];
 
@@ -224,6 +229,11 @@ let menuGroups = [
         name: "Sales",
         path: "/admin/sales",
       },
+      {
+        icon: ChatIcon,
+        name: "Comments",
+        path: "/admin/comments",
+      }
 
       /*   {
            name: "Forms",

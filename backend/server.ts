@@ -21,6 +21,7 @@ import {UserController } from "./src/controllers/user.controller.js";
 import {SaleController} from "./src/controllers/sale.controller.js";
 import path from "node:path";
 import {initAuth} from "./src/utils/auth-instance.ts";
+import {CommentController} from "./src/controllers/comment.controller.ts";
 
 export const DI: { orm?: MikroORM; em?: EntityManager } = {};
 
@@ -56,6 +57,7 @@ async function main() {
     app.use('/api/user', UserController(DI));
    // app.use('/api/auth', AuthController(DI));
     app.use('/api/sale', SaleController(DI));
+    app.use('/api/comment', CommentController(DI));
     app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
     //await orm.schema.refreshDatabase();

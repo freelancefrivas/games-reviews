@@ -1,5 +1,7 @@
 import {Entity, PrimaryKey, Property, BeforeCreate, Enum, OneToMany, Collection} from '@mikro-orm/core';
 import bcrypt from 'bcrypt';
+import type {Post} from "./Post.ts";
+import type {Comment} from "./Comment.ts";
 
 export enum RoleType {
     ADMIN = 'admin',
@@ -36,6 +38,12 @@ export class User {
 
     @Enum(() => RoleType)
     role: RoleType = RoleType.WRITER;
+
+    @OneToMany({ entity: 'Post', mappedBy: 'author' })
+    posts = new Collection<Post>(this);
+
+    @OneToMany({ entity: 'Comment', mappedBy: 'author' })
+    comments = new Collection<Comment>(this);
 
     /*async hashPassword() {
         if (this.password) {

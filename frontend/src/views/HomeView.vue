@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import axios from 'axios';
-import {reactive, onMounted} from "vue";
+import {reactive, onMounted, computed} from "vue";
 import api from '@/api';
 import {useSearchBarStore} from '@/stores/searchBar.ts'
 import type {Tag} from "@/types/tag.ts";
@@ -12,6 +12,7 @@ const tags = reactive<Tag[]>([]);
 const searchBarStore = useSearchBarStore();
 const newsItems = reactive<Post[]>([]);
 const reviews = reactive<Review[]>([]);
+const baseUrl = computed(() => import.meta.env.VITE_API_URL);
 
 onMounted(() => {
   loadTags();
@@ -69,11 +70,12 @@ const loadReviews = async () => {
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div id="news">
-        <h1 >NEWS</h1>
+        <h1>NEWS</h1>
         <div v-for="newsItem in newsItems">
-          <RouterLink :to="'/post/'+newsItem.slugCode"><h2 class="exo-2 uppercase">{{ newsItem.title }}</h2></RouterLink>
-          <RouterLink v-if="newsItem.mainImage" :to="'/post/'+newsItem.slugCode"><img class="w-100"
-                                                                                     :src="newsItem.mainImage"/>
+          <RouterLink :to="'/post/'+newsItem.slugCode"><h2 class="exo-2 uppercase">{{ newsItem.title }}</h2>
+          </RouterLink>
+          <RouterLink v-if="newsItem.mainImage" :to="'/post/'+newsItem.slugCode"><img class="w-100 mx-auto my-4"
+                                                                                      :src="baseUrl+newsItem.mainImage"/>
           </RouterLink>
           <div class="post-block">
 
@@ -85,9 +87,10 @@ const loadReviews = async () => {
         <h1>REVIEWS</h1>
         <p v-if="reviews.length === 0" class="text-text text-center text-lg mt-2">No reviews yet!</p>
         <div v-for="review in reviews">
-          <RouterLink to="'/post/'+review.post.slugCode"><h2 class="exo-2 uppercase">{{ review.post.title }}</h2></RouterLink>
-          <RouterLink v-if="review.post.mainImage" to="'/post/'+newsItem.slugCode"><img class="w-100"
-                                                                                        :src="review.post.mainImage"/>
+          <RouterLink to="'/post/'+review.post.slugCode"><h2 class="exo-2 uppercase">{{ review.post.title }}</h2>
+          </RouterLink>
+          <RouterLink v-if="review.post.mainImage" to="'/post/'+newsItem.slugCode"><img class="w-100 mx-auto my-4"
+                                                                                        :src="baseUrl+review.post.mainImage"/>
           </RouterLink>
           <div class="post-block">
 

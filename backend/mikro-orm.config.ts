@@ -13,6 +13,7 @@ import {SaleGame} from "./src/entities/SaleGame.ts";
 import {Session} from "./src/entities/Session.ts";
 import {Verification} from "./src/entities/Verification.ts";
 import {Account} from "./src/entities/Account.ts";
+import {Comment} from "./src/entities/Comment.ts";
 dotenv.config();
 
 
@@ -23,7 +24,7 @@ const config  = {
     password: process.env.DB_PASSWORD,
     host: process.env.DB_HOST,
     port: Number(process.env.DB_PORT),
-    entities: [User, Post, Tag, Review, PostMonthlyClicks, Sale, SaleGame, Session, Verification, Account],
+    entities: [User, Post, Tag, Review, PostMonthlyClicks, Sale, SaleGame, Session, Verification, Account, Comment],
     forceEntityConstructor: true,
     extensions: [Migrator],
     metadataProvider: TsMorphMetadataProvider,

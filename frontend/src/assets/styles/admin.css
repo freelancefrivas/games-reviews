@@ -870,8 +870,12 @@ header {
     }
 }
 
+.actions {
+    @apply whitespace-nowrap;
+}
+
 .action {
-    @apply inline-flex items-center rounded px-1 py-1 text-black transition-colors;
+    @apply inline-flex items-center rounded px-1 py-1 text-black transition-colors cursor-pointer;
 }
 
 .action-view:hover {
@@ -889,4 +893,14 @@ header {
 .p-datatable-column-title,
 .p-datatable-tbody td {
     font-size: 14px !important;
+}
+
+.compacting-table :deep(td) {
+    white-space: nowrap;
+}
+
+.compacting-table .text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }

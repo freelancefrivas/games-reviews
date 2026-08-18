@@ -40,7 +40,8 @@ export class Post {
     @Property({ default: false })
     published: boolean = false;
 
-    @ManyToOne(() => User)
+    @ManyToOne('User')
+    @Index()
     author!: User;
 
 }

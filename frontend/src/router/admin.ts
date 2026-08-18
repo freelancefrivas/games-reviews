@@ -55,6 +55,12 @@ const adminRoutes: Array<RouteRecordRaw> = [
                 component: () => import('@/views/admin/Sale.vue'),
                 meta: { title: 'Create Sale' }
             },
+            {
+                path: 'comments',
+                name: 'Comments',
+                component: () => import('@/views/admin/Comments.vue'),
+                meta: { title: 'Comments' }
+            },
         ],
     },
 ]
